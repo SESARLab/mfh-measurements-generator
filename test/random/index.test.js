@@ -1,11 +1,18 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { describe, it } = require('@jest/globals');
+const { addMinutes, addYears } = require('date-fns');
 const chance = require('../../lib/random/chance');
-const { measurementType, unitsOfMeasure } = require('../../lib/data');
-const { getId, getMeasurementType, getMeasurement } = require('../../lib/random');
+const {
+  measurementType, unitsOfMeasure, locations, agents, sensors,
+} = require('../../lib/data');
+const {
+  getId, getMeasurementType, getMeasurement, getMeasurementTimestamps, getLocation, getSensor, getAgent,
+} = require('../../lib/random');
 
+jest.mock('date-fns');
 jest.mock('../../lib/random/chance', () => ({
   guid: jest.fn(),
+  integer: jest.fn(),
   floating: jest.fn(),
   date: jest.fn(),
   pickone: jest.fn(),
@@ -21,13 +28,13 @@ describe('random', () => {
 
   describe('getId', () => {
     it('should return a random guid', () => {
-      const expected = 'a6edc906-2f9f-5fb2-a373-efac406f0ef2';
-      chance.guid.mockReturnValue(expected);
+      const guid = 'a6edc906-2f9f-5fb2-a373-efac406f0ef2';
+      chance.guid.mockReturnValue(guid);
 
       const actual = getId();
 
       expect(chance.guid).toHaveBeenCalled();
-      expect(actual).toEqual(expected);
+      expect(actual).toEqual(guid);
     });
   });
 
@@ -73,7 +80,7 @@ describe('random', () => {
       'soiltemperature',
       'winddirection',
       'windspeed',
-    ])('should return a "discrete" double value when sensorType is "%s" (of measurementType MEASUREMENT)', (sensorType) => {
+    ])('should return a random "discrete" double value when sensorType is "%s" (of measurementType MEASUREMENT)', (sensorType) => {
       const unitOfMeasure = 'C';
       const floatValue = 1.25;
 
@@ -95,7 +102,7 @@ describe('random', () => {
       'depth_swp2',
       'solarpanel',
       'solarradiation',
-    ])('should return a "range" string value when sensorType is "%s" (of measurementType PHASE)', (sensorType) => {
+    ])('should return a random "range" string value when sensorType is "%s" (of measurementType PHASE)', (sensorType) => {
       const unitOfMeasure = 'C';
       const firstFloatValue = 1.25;
       const secondFloatValue = 7.25;
@@ -119,7 +126,7 @@ describe('random', () => {
 
     it.each([
       'stress',
-    ])('should return a string value when sensorType is "%s" (of measurementType TAG)', (sensorType) => {
+    ])('should return a random string value when sensorType is "%s" (of measurementType TAG)', (sensorType) => {
       const unitOfMeasure = 'C';
       const floatValue = 1.25;
 
@@ -134,6 +141,132 @@ describe('random', () => {
         double_value: null,
         str_value: `Value: ${floatValue}`,
         unit_of_measure: unitOfMeasure,
+      });
+    });
+  });
+
+  describe('getMeasurementTimestamps', () => {
+    it('should return a random measurement timestamp in one year range, and with a random calculted insertion time', () => {
+      const pastYear = new Date();
+      addYears.mockReturnValue(pastYear);
+
+      const measurementTimestamp = new Date();
+      chance.date.mockReturnValue(measurementTimestamp);
+
+      const minutes = 30;
+      chance.integer.mockReturnValue(minutes);
+
+      const insertionTimestamp = new Date();
+      addMinutes.mockReturnValue(insertionTimestamp);
+
+      const actual = getMeasurementTimestamps('airhumidity');
+
+      expect(addYears).toHaveBeenCalledWith(expect.any(Object), -1);
+      expect(chance.date).toHaveBeenCalledWith({ min: pastYear, max: expect.any(Object) });
+      expect(chance.integer).toHaveBeenCalledWith({ min: 20, max: 60 });
+      expect(addMinutes).toHaveBeenCalledWith(measurementTimestamp, minutes);
+      expect(actual).toEqual({
+        measure_timestamp: measurementTimestamp.toISOString(),
+        start_timestamp: null,
+        end_timestamp: null,
+        insertion_timestamp: insertionTimestamp.toISOString(),
+      });
+    });
+
+    it('should return random start and end timestamp in one year range, and with a random calculted insertion time, for PHASE measurementType', () => {
+      const pastYear = new Date();
+      addYears.mockReturnValue(pastYear);
+
+      const measurementTimestamp = new Date();
+      chance.date.mockReturnValue(measurementTimestamp);
+
+      const minutes = 30;
+      chance.integer.mockReturnValue(minutes);
+
+      const insertionTimestamp = new Date();
+      addMinutes.mockReturnValue(insertionTimestamp);
+
+      const actual = getMeasurementTimestamps('depth_swp1');
+
+      expect(addYears).toHaveBeenCalledWith(expect.any(Object), -1);
+      expect(chance.date).toHaveBeenCalledWith({ min: pastYear, max: expect.any(Object) });
+      expect(chance.integer).toHaveBeenCalledWith({ min: 20, max: 60 });
+      expect(addMinutes).toHaveBeenNthCalledWith(1, measurementTimestamp, minutes);
+      expect(addMinutes).toHaveBeenNthCalledWith(2, measurementTimestamp, minutes);
+      expect(actual).toEqual({
+        measure_timestamp: null,
+        start_timestamp: measurementTimestamp.toISOString(),
+        end_timestamp: measurementTimestamp.toISOString(),
+        insertion_timestamp: insertionTimestamp.toISOString(),
+      });
+    });
+  });
+
+  describe('getLocation', () => {
+    it('should return a random location, with randomly calculated latitue, longitude and altitude', () => {
+      const minLatitude = 45.0;
+      const maxLatitude = 45.5;
+      const minLongitude = 9.0;
+      const maxLongitude = 9.5;
+      const minAltitude = 1.0;
+      const maxAltitude = 5.0;
+      const latitude = 45.1;
+      const longitude = 0.1;
+      const altitude = 1.1;
+      const location = {
+        location_id: 'sw_terrain',
+        location_name: 'Brazilian Glorytree',
+        location_botanic_name: 'Tibouchina granulosa (Desr.) Cogn.',
+        location_cultivation_name: 'Melastomataceae',
+        location_description: 'Organic full-range budgetary management',
+      };
+
+      chance.pickone.mockReturnValue(location);
+      chance.latitude.mockReturnValue(latitude);
+      chance.longitude.mockReturnValue(longitude);
+      chance.floating.mockReturnValue(altitude);
+
+      const actual = getLocation(minLatitude, maxLatitude, minLongitude, maxLongitude, minAltitude, maxAltitude);
+
+      expect(chance.pickone).toHaveBeenCalledWith(locations);
+      expect(chance.latitude).toHaveBeenCalledWith({ min: minLatitude, max: maxLatitude, fixed: 4 });
+      expect(chance.longitude).toHaveBeenCalledWith({ min: minLongitude, max: maxLongitude, fixed: 4 });
+      expect(chance.floating).toHaveBeenCalledWith({ min: minAltitude, max: maxAltitude, fixed: 4 });
+      expect(actual).toEqual({
+        ...location,
+        location_latitude: latitude,
+        location_longitude: longitude,
+        location_altitude: altitude,
+      });
+    });
+  });
+
+  describe('getSensor', () => {
+    it('should return a random sensor', () => {
+      const sensor = {
+        sensor_id: 'TS_0310B472-battery',
+        sensor_type: 'battery',
+        sensor_desc_name: 'ICON TS sensor group',
+      };
+      chance.pickone.mockReturnValue(sensor);
+
+      const actual = getSensor();
+
+      expect(chance.pickone).toHaveBeenCalledWith(sensors);
+      expect(actual).toEqual(sensor);
+    });
+  });
+
+  describe('getAgent', () => {
+    it('should return a random agent', () => {
+      const agent = 'rover_agent';
+      chance.pickone.mockReturnValue(agent);
+
+      const actual = getAgent();
+
+      expect(chance.pickone).toHaveBeenCalledWith(agents);
+      expect(actual).toEqual({
+        insertion_agent: agent,
       });
     });
   });
