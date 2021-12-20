@@ -1,4 +1,6 @@
 .vscode/
 .idea/
 
+output/**
+
 node_modules/
