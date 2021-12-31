@@ -21,12 +21,14 @@
   "dependencies": {
     "chance": "1.1.8",
     "date-fns": "2.27.0",
-    "jsonexport": "3.2.0"
+    "jsonexport": "3.2.0",
+    "pino": "^7.6.2",
+    "split2": "^4.1.0"
   },
   "devDependencies": {
-    "eslint": "^8.5.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.25.3",
-    "jest": "^27.4.5"
+    "eslint": "8.5.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "2.25.3",
+    "jest": "27.4.5"
   }
 }

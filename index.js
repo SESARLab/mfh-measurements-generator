@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-// const jsonexport = require('jsonexport');
+const jsonexport = require('jsonexport');
+const split = require('split2');
+const logger = require('pino')();
 const {
   NUMBER_OF_ROWS, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE,
 } = require('./config');
@@ -8,30 +10,72 @@ const {
   getId, getSensor, getLocation, getMeasurement, getMeasurementTimestamps, getAgent,
 } = require('./lib/random');
 
-const JSON_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${Date.now()}.ndjson`);
+const NOW = Date.now();
+const JSON_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${NOW}.ndjson`);
+const CSV_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${NOW}.csv`);
 
-(function run() {
-  const stream = fs.createWriteStream(JSON_OUTPUT, { flags: 'a' });
+async function writeJSON() {
+  return new Promise((resolve, reject) => {
+    const jsonWriter = fs.createWriteStream(JSON_OUTPUT, { flags: 'a' });
 
-  for (let i = 0; i < NUMBER_OF_ROWS; i += 1) {
-    const id = getId();
-    const sensor = getSensor();
-    const location = getLocation(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE);
-    const measurement = getMeasurement(sensor.sensor_type);
-    const timestamps = getMeasurementTimestamps(sensor.sensor_type);
-    const agent = getAgent();
+    jsonWriter.on('error', reject);
+    jsonWriter.on('close', () => {
+      logger.info(`Correctly wrote ${NUMBER_OF_ROWS} measurement in ndjson format`);
+      resolve();
+    });
 
-    const row = {
-      id,
-      ...measurement,
-      ...sensor,
-      ...location,
-      ...agent,
-      ...timestamps,
-    };
+    logger.info(`Start to write ${JSON_OUTPUT} file`);
 
-    stream.write(`${JSON.stringify(row)}\n`);
+    for (let i = 0; i < NUMBER_OF_ROWS; i += 1) {
+      const id = getId();
+      const sensor = getSensor();
+      const location = getLocation(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE);
+      const measurement = getMeasurement(sensor.sensor_type);
+      const timestamps = getMeasurementTimestamps(sensor.sensor_type);
+      const agent = getAgent();
+
+      const row = {
+        id,
+        ...measurement,
+        ...sensor,
+        ...location,
+        ...agent,
+        ...timestamps,
+      };
+
+      jsonWriter.write(`${JSON.stringify(row)}\n`);
+    }
+
+    jsonWriter.end();
+  });
+}
+
+async function writeCSV() {
+  return new Promise((resolve, reject) => {
+    const jsonReader = fs.createReadStream(JSON_OUTPUT);
+    const csvWriter = fs.createWriteStream(CSV_OUTPUT);
+
+    jsonReader.on('error', reject);
+    csvWriter.on('error', reject);
+    csvWriter.on('close', () => {
+      logger.info(`Correctly wrote ${NUMBER_OF_ROWS} measurement in csv format`);
+      resolve();
+    });
+
+    logger.info(`Start to write ${CSV_OUTPUT} file`);
+
+    jsonReader
+      .pipe(split())
+      .pipe(jsonexport())
+      .pipe(csvWriter);
+  });
+}
+
+(async () => {
+  try {
+    await writeJSON();
+    await writeCSV();
+  } catch (err) {
+    logger.error({ err });
   }
-
-  stream.end();
-}());
+})();
