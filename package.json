@@ -20,9 +20,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "chance": "1.1.8",
+    "cli-progress": "3.9.1",
     "date-fns": "2.27.0",
     "jsonexport": "3.2.0",
-    "pino": "^7.6.2",
     "split2": "^4.1.0"
   },
   "devDependencies": {

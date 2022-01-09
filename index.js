@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const jsonexport = require('jsonexport');
 const split = require('split2');
-const logger = require('pino')();
+const { SingleBar, Presets } = require('cli-progress');
+const { Transform } = require('stream');
 const {
   NUMBER_OF_ROWS, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE,
 } = require('./config');
@@ -10,21 +11,27 @@ const {
   getId, getSensor, getLocation, getMeasurement, getMeasurementTimestamps, getAgent,
 } = require('./lib/random');
 
+const { info, error } = console;
+
 const NOW = Date.now();
 const JSON_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${NOW}.ndjson`);
 const CSV_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${NOW}.csv`);
 
 async function writeJSON() {
   return new Promise((resolve, reject) => {
+    const progress = new SingleBar({}, Presets.shades_classic);
     const jsonWriter = fs.createWriteStream(JSON_OUTPUT, { flags: 'a' });
 
     jsonWriter.on('error', reject);
     jsonWriter.on('close', () => {
-      logger.info(`Correctly wrote ${NUMBER_OF_ROWS} measurement in ndjson format`);
+      progress.stop();
+      info(`\nCorrectly wrote ${NUMBER_OF_ROWS} measurement in ndjson format\n`);
       resolve();
     });
 
-    logger.info(`Start to write ${JSON_OUTPUT} file`);
+    info(`Writing ${JSON_OUTPUT} file\n`);
+
+    progress.start(NUMBER_OF_ROWS, 0);
 
     for (let i = 0; i < NUMBER_OF_ROWS; i += 1) {
       const id = getId();
@@ -44,6 +51,7 @@ async function writeJSON() {
       };
 
       jsonWriter.write(`${JSON.stringify(row)}\n`);
+      progress.update(i);
     }
 
     jsonWriter.end();
@@ -52,20 +60,31 @@ async function writeJSON() {
 
 async function writeCSV() {
   return new Promise((resolve, reject) => {
+    const progress = new SingleBar({}, Presets.shades_classic);
     const jsonReader = fs.createReadStream(JSON_OUTPUT);
     const csvWriter = fs.createWriteStream(CSV_OUTPUT);
 
     jsonReader.on('error', reject);
     csvWriter.on('error', reject);
     csvWriter.on('close', () => {
-      logger.info(`Correctly wrote ${NUMBER_OF_ROWS} measurement in csv format`);
+      progress.stop();
+      info(`\nCorrectly wrote ${NUMBER_OF_ROWS} measurement in csv format\n`);
       resolve();
     });
 
-    logger.info(`Start to write ${CSV_OUTPUT} file`);
+    info(`Writing ${CSV_OUTPUT} file\n`);
+
+    progress.start(NUMBER_OF_ROWS, 0);
 
     jsonReader
       .pipe(split())
+      .pipe(new Transform({
+        transform(chunk, _, callback) {
+          this.push(chunk);
+          progress.increment(1);
+          callback();
+        },
+      }))
       .pipe(jsonexport())
       .pipe(csvWriter);
   });
@@ -76,6 +95,6 @@ async function writeCSV() {
     await writeJSON();
     await writeCSV();
   } catch (err) {
-    logger.error({ err });
+    error({ err });
   }
 })();
