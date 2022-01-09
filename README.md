@@ -10,25 +10,25 @@ This means that, for each row of the table, we can have missing (`NULL`) values,
 MIND Foods Hub sensors are of three types:
 
 - Measurements, that register discrete, floating-point, values (for example temperature, humidity, wind speed, etc, etc).
-This type of measurement is stored in `double_value` column, while the time of the measurement is stored in the `timestamp` column.
+This type of measurement is stored in `double_value` column, while the time of the measurement is stored in the `measure_timestamp` column.
 
 - Phase sensors, that register a range of floating-point values in a given period.
-This type of measurement is stored in the `str_value` column, while the time start and end of the measurement are stored respectively in the `start` and `end` columns.
+This type of measurement is stored in the `str_value` column, while the time start and end of the measurement are stored respectively in the `start_timestamp` and `end_timestamp` columns.
 
 - Tag sensors, that register string-based values.
-This type of measurement is stored in `double_value` column, while the time of the measurement is stored in the `timestamp` column.
+This type of measurement is stored in `double_value` column, while the time of the measurement is stored in the `measure_timestamp` column.
 
 
 To randomly generate data for `dl_measurements` we need to mock this relation between a sensor type and its measurement, and guarantee these logical constraints:
 
 - `double_value` is only populated for float-based measurements while `str_value` is `NULL`.
-`timestamp` is calculated, while `start` and `end` are `NULL`
+`measure_timestamp` is calculated, while `start_timestamp` and `end_timestamp` are `NULL`
 
 - For phase-based measurement `str_value` is populated, while `double_value` is `NULL`.
-Both `start` and `end` times are calculated, while `timestamp` is `NULL`
+Both `start_timestamp` and `end_timestamp` times are calculated, while `measure_timestamp` is `NULL`
 
 - For tag based measurement `str_value` is populated, while `double_value` is `NULL`.
-`timestamp` is calculated, while `start` and `end` are `NULL`
+`measure_timestamp` is calculated, while `start_timestamp` and `end_timestamp` are `NULL`
 
 ### Usage
 
