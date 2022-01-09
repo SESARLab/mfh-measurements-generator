@@ -51,7 +51,7 @@ async function writeJSON() {
       };
 
       jsonWriter.write(`${JSON.stringify(row)}\n`);
-      progress.update(i);
+      progress.increment();
     }
 
     jsonWriter.end();
@@ -81,7 +81,7 @@ async function writeCSV() {
       .pipe(new Transform({
         transform(chunk, _, callback) {
           this.push(chunk);
-          progress.increment(1);
+          progress.increment();
           callback();
         },
       }))

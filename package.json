@@ -20,10 +20,10 @@
   "license": "UNLICENSED",
   "dependencies": {
     "chance": "1.1.8",
-    "cli-progress": "3.9.1",
+    "cli-progress": "3.10.0",
     "date-fns": "2.27.0",
     "jsonexport": "3.2.0",
-    "split2": "^4.1.0"
+    "split2": "4.1.0"
   },
   "devDependencies": {
     "eslint": "8.5.0",
