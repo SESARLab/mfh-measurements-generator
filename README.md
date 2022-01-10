@@ -7,6 +7,37 @@ Data is generated in two formats: [CSV](https://it.wikipedia.org/wiki/Comma-sepa
 
 MIND Foods Hub data are stored in a single table, named `dl_measurements`, that follows a denormalized data model to avoid expensive join operations.
 This means that, for each row of the table, we can have missing (`NULL`) values, depending on the type of measurement.
+This is the table schema:
+
+```sql
+CREATE TABLE dl_measurements
+(
+    id                        string,
+    double_value              double,
+    str_value                 string,
+    unit_of_measure           string,
+    sensor_id                 string,
+    sensor_type               string,
+    sensor_desc_name          string,
+    location_id               string,
+    location_name             string,
+    location_description      string,
+    location_botanic_name     string,
+    location_cultivation_name string,
+    location_latitude         double,
+    location_longitude        double,
+    location_altitude         double,
+    measure_timestamp         timestamp,
+    start_timestamp           timestamp,
+    end_timestamp             timestamp,
+    insertion_agent           string,
+    insertion_timestamp       timestamp,
+    CONSTRAINT dl_measurements_pk
+        PRIMARY KEY (id) DISABLE NOVALIDATE
+)
+    PARTITIONED BY (partion_date string)
+```
+
 MIND Foods Hub sensors are of three types:
 
 - Measurements, that register discrete, floating-point, values (for example temperature, humidity, wind speed, etc, etc).
@@ -17,7 +48,6 @@ This type of measurement is stored in the `str_value` column, while the time sta
 
 - Tag sensors, that register string-based values.
 This type of measurement is stored in `double_value` column, while the time of the measurement is stored in the `measure_timestamp` column.
-
 
 To randomly generate data for `dl_measurements` we need to mock this relation between a sensor type and its measurement, and guarantee these logical constraints:
 
