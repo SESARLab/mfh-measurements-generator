@@ -1,12 +1,12 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { describe, it } = require('@jest/globals');
-const { addMinutes, addYears } = require('date-fns');
+const { addMinutes, addYears, format } = require('date-fns');
 const chance = require('../../lib/random/chance');
 const {
   measurementType, unitsOfMeasure, locations, agents, sensors,
 } = require('../../lib/data');
 const {
-  getId, getMeasurementType, getMeasurement, getMeasurementTimestamps, getLocation, getSensor, getAgent,
+  DATE_FORMAT, getId, getMeasurementType, getMeasurement, getMeasurementTimestamps, getLocation, getSensor, getAgent,
 } = require('../../lib/random');
 
 jest.mock('date-fns');
@@ -147,6 +147,8 @@ describe('random', () => {
 
   describe('getMeasurementTimestamps', () => {
     it('should return a random measurement timestamp in one year range, and with a random calculted insertion time', () => {
+      format.mockImplementation((date) => date);
+
       const pastYear = new Date();
       addYears.mockReturnValue(pastYear);
 
@@ -165,15 +167,19 @@ describe('random', () => {
       expect(chance.date).toHaveBeenCalledWith({ min: pastYear, max: expect.any(Object) });
       expect(chance.integer).toHaveBeenCalledWith({ min: 20, max: 60 });
       expect(addMinutes).toHaveBeenCalledWith(measurementTimestamp, minutes);
+      expect(format).toHaveBeenNthCalledWith(1, measurementTimestamp, DATE_FORMAT);
+      expect(format).toHaveBeenNthCalledWith(2, insertionTimestamp, DATE_FORMAT);
       expect(actual).toEqual({
-        measure_timestamp: measurementTimestamp.toISOString(),
+        measure_timestamp: measurementTimestamp,
         start_timestamp: null,
         end_timestamp: null,
-        insertion_timestamp: insertionTimestamp.toISOString(),
+        insertion_timestamp: insertionTimestamp,
       });
     });
 
     it('should return random start and end timestamp in one year range, and with a random calculted insertion time, for PHASE measurementType', () => {
+      format.mockImplementation((date) => date);
+
       const pastYear = new Date();
       addYears.mockReturnValue(pastYear);
 
@@ -193,11 +199,14 @@ describe('random', () => {
       expect(chance.integer).toHaveBeenCalledWith({ min: 20, max: 60 });
       expect(addMinutes).toHaveBeenNthCalledWith(1, measurementTimestamp, minutes);
       expect(addMinutes).toHaveBeenNthCalledWith(2, measurementTimestamp, minutes);
+      expect(format).toHaveBeenNthCalledWith(1, measurementTimestamp, DATE_FORMAT);
+      expect(format).toHaveBeenNthCalledWith(2, measurementTimestamp, DATE_FORMAT);
+      expect(format).toHaveBeenNthCalledWith(3, insertionTimestamp, DATE_FORMAT);
       expect(actual).toEqual({
         measure_timestamp: null,
-        start_timestamp: measurementTimestamp.toISOString(),
-        end_timestamp: measurementTimestamp.toISOString(),
-        insertion_timestamp: insertionTimestamp.toISOString(),
+        start_timestamp: measurementTimestamp,
+        end_timestamp: measurementTimestamp,
+        insertion_timestamp: insertionTimestamp,
       });
     });
   });
