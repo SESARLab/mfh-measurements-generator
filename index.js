@@ -14,8 +14,8 @@ const {
 const { info, error } = console;
 
 const NOW = Date.now();
-const JSON_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${NOW}.ndjson`);
-const CSV_OUTPUT = path.resolve(`${__dirname}/output`, `dl_measurements-${NOW}.csv`);
+const JSON_OUTPUT = path.resolve(`${__dirname}/output`, `dl-measurements_${NOW}.ndjson`);
+const CSV_OUTPUT = path.resolve(`${__dirname}/output`, `dl-measurements_${NOW}.csv`);
 
 async function writeJSON() {
   return new Promise((resolve, reject) => {
