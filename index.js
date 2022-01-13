@@ -7,9 +7,7 @@ const { Transform } = require('stream');
 const {
   NUMBER_OF_ROWS, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE,
 } = require('./config');
-const {
-  getId, getSensor, getLocation, getMeasurement, getMeasurementTimestamps, getAgent,
-} = require('./lib/random');
+const { getMeasurement } = require('./lib/random');
 
 const { info, error } = console;
 
@@ -34,23 +32,7 @@ async function writeJSON() {
     progress.start(NUMBER_OF_ROWS, 0);
 
     for (let i = 0; i < NUMBER_OF_ROWS; i += 1) {
-      const id = getId();
-      const sensor = getSensor();
-      const location = getLocation(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE);
-      const measurement = getMeasurement(sensor.sensor_type);
-      const timestamps = getMeasurementTimestamps(sensor.sensor_type);
-      const agent = getAgent();
-
-      const row = {
-        id,
-        ...measurement,
-        ...sensor,
-        ...location,
-        ...agent,
-        ...timestamps,
-      };
-
-      jsonWriter.write(`${JSON.stringify(row)}\n`);
+      jsonWriter.write(`${JSON.stringify(getMeasurement(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE))}\n`);
       progress.increment();
     }
 

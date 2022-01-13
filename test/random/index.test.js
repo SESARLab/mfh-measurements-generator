@@ -5,9 +5,11 @@ const chance = require('../../lib/random/chance');
 const {
   measurementType, unitsOfMeasure, locations, agents, sensors,
 } = require('../../lib/data');
+const random = require('../../lib/random');
+
 const {
-  DATE_FORMAT, getId, getMeasurementType, getMeasurement, getMeasurementTimestamps, getLocation, getSensor, getAgent,
-} = require('../../lib/random');
+  DATE_FORMAT, getId, getMeasurementType, getMeasurementValues, getMeasurementTimestamps, getLocation, getSensor, getAgent, getMeasurement,
+} = random;
 
 jest.mock('date-fns');
 jest.mock('../../lib/random/chance', () => ({
@@ -69,7 +71,7 @@ describe('random', () => {
     });
   });
 
-  describe('getMeasurement', () => {
+  describe('getMeasurementValues', () => {
     it.each([
       'airhumidity',
       'airtemperature',
@@ -86,7 +88,7 @@ describe('random', () => {
 
       chance.pickone.mockReturnValue(unitOfMeasure);
       chance.floating.mockReturnValueOnce(floatValue);
-      const actual = getMeasurement(sensorType);
+      const actual = getMeasurementValues(sensorType);
 
       expect(chance.pickone).toHaveBeenCalledWith(unitsOfMeasure);
       expect(chance.floating).toHaveBeenCalledWith({ min: 1, max: 10, fixed: 2 });
@@ -112,7 +114,7 @@ describe('random', () => {
         .mockReturnValueOnce(firstFloatValue)
         .mockReturnValueOnce(secondFloatValue);
 
-      const actual = getMeasurement(sensorType);
+      const actual = getMeasurementValues(sensorType);
 
       expect(chance.pickone).toHaveBeenCalledWith(unitsOfMeasure);
       expect(chance.floating).toHaveBeenNthCalledWith(1, { min: 10, max: 120, fixed: 2 });
@@ -133,7 +135,7 @@ describe('random', () => {
       chance.pickone.mockReturnValue(unitOfMeasure);
       chance.floating.mockReturnValueOnce(floatValue);
 
-      const actual = getMeasurement(sensorType);
+      const actual = getMeasurementValues(sensorType);
 
       expect(chance.pickone).toHaveBeenCalledWith(unitsOfMeasure);
       expect(chance.floating).toHaveBeenCalledWith({ min: 10, max: 120, fixed: 2 });
@@ -276,6 +278,80 @@ describe('random', () => {
       expect(chance.pickone).toHaveBeenCalledWith(agents);
       expect(actual).toEqual({
         insertion_agent: agent,
+      });
+    });
+  });
+
+  describe('getMeasurement', () => {
+    it('should return a randomly generated object, representing a single measurement', () => {
+      const minLatitude = 45.0;
+      const maxLatitude = 45.5;
+      const minLongitude = 9.0;
+      const maxLongitude = 9.5;
+      const minAltitude = 1.0;
+      const maxAltitude = 5.0;
+
+      // Expected values
+      const guid = 'a6edc906-2f9f-5fb2-a373-efac406f0ef2';
+      const sensor = {
+        sensor_id: 'TS_0310B472-battery',
+        sensor_type: 'battery',
+        sensor_desc_name: 'ICON TS sensor group',
+      };
+      const unitOfMeasure = 'C';
+      const floatValue = 1.25;
+      const latitude = 45.1;
+      const longitude = 0.1;
+      const altitude = 1.1;
+      const location = {
+        location_id: 'sw_terrain',
+        location_name: 'Brazilian Glorytree',
+        location_botanic_name: 'Tibouchina granulosa (Desr.) Cogn.',
+        location_cultivation_name: 'Melastomataceae',
+        location_description: 'Organic full-range budgetary management',
+      };
+
+      const date = new Date();
+      const minutes = 30;
+      const agent = 'rover_agent';
+
+      addYears.mockReturnValue(date);
+      addMinutes.mockReturnValue(date);
+      format.mockImplementation((d) => d);
+
+      chance.guid.mockReturnValue(guid);
+      chance.pickone
+        .mockReturnValueOnce(sensor)
+        .mockReturnValueOnce(unitOfMeasure)
+        .mockReturnValueOnce(location)
+        .mockReturnValueOnce(agent);
+
+      chance.latitude.mockReturnValue(latitude);
+      chance.longitude.mockReturnValue(longitude);
+      chance.floating
+        .mockReturnValueOnce(floatValue)
+        .mockReturnValueOnce(altitude);
+
+      chance.integer.mockReturnValue(minutes);
+      chance.date.mockReturnValue(date);
+
+      const actual = getMeasurement(minLatitude, maxLatitude, minLongitude, maxLongitude, minAltitude, maxAltitude);
+
+      expect(actual).toEqual({
+        id: guid,
+        ...sensor,
+        double_value: floatValue,
+        str_value: null,
+        unit_of_measure: unitOfMeasure,
+        ...location,
+        location_latitude: latitude,
+        location_longitude: longitude,
+        location_altitude: altitude,
+        insertion_agent: agent,
+        measure_timestamp: date,
+        start_timestamp: null,
+        end_timestamp: null,
+        insertion_timestamp: date,
       });
     });
   });
