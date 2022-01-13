@@ -1,23 +1,24 @@
 {
-  "name": "dl-measurements-generator",
+  "name": "mfh-measurements-generator",
   "version": "0.0.1",
-  "description": "MIND Foods HUB DL Measurements data generator",
+  "description": "A command-line application that generates measurements data for MIND Foods Hub Data Lake.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "lint": "eslint .",
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git@repository.v2.moon-cloud.eu:gabrieledarrigo/dl-measurements-generator.git"
+    "url": "git@github.com:SESARLab/mfh-measurements-generator.git"
   },
   "keywords": [
-    "schema",
-    "data",
-    "data lake"
+    "MIND Foods Hub",
+    "data lake",
+    "data generator"
   ],
-  "author": "Gabriele D'Arrigo <gabriele.darrigo@studenti.unimi.it>",
-  "license": "UNLICENSED",
+  "author": "Gabriele D'Arrigo <gabriele.darrigo@studenti.unimi.it> <darrigo.g@gmail.com>",
+  "license": "Apache-2.0",
   "dependencies": {
     "chance": "1.1.8",
     "cli-progress": "3.10.0",
