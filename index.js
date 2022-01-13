@@ -41,7 +41,7 @@ async function writeJSON() {
       if (index < NUMBER_OF_ROWS) {
         const measurement = getMeasurement(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE);
 
-        write((`${JSON.stringify(measurement)}\n`));
+        write((`${JSON.stringify(measurement)}\n`), run);
         progress.increment();
         index += 1;
       } else {
