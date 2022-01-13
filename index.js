@@ -17,6 +17,7 @@ const CSV_OUTPUT = path.resolve(`${__dirname}/output`, `dl-measurements_${NOW}.c
 
 async function writeJSON() {
   return new Promise((resolve, reject) => {
+    let index = 0;
     const progress = new SingleBar({}, Presets.shades_classic);
     const jsonWriter = fs.createWriteStream(JSON_OUTPUT, { flags: 'a' });
 
@@ -27,16 +28,30 @@ async function writeJSON() {
       resolve();
     });
 
-    info(`Writing ${JSON_OUTPUT} file\n`);
-
-    progress.start(NUMBER_OF_ROWS, 0);
-
-    for (let i = 0; i < NUMBER_OF_ROWS; i += 1) {
-      jsonWriter.write(`${JSON.stringify(getMeasurement(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE))}\n`);
-      progress.increment();
+    function write(data, next) {
+      const wrote = jsonWriter.write(data, 'utf-8');
+      if (!wrote) {
+        jsonWriter.once('drain', next);
+      } else {
+        process.nextTick(next);
+      }
     }
 
-    jsonWriter.end();
+    function run() {
+      if (index < NUMBER_OF_ROWS) {
+        const measurement = getMeasurement(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE);
+
+        write((`${JSON.stringify(measurement)}\n`));
+        progress.increment();
+        index += 1;
+      } else {
+        jsonWriter.end();
+      }
+    }
+
+    info(`Writing ${JSON_OUTPUT} file\n`);
+    progress.start(NUMBER_OF_ROWS, 0);
+    run();
   });
 }
 
