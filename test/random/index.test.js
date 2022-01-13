@@ -4,7 +4,7 @@ const { addMinutes, addYears, format } = require('date-fns');
 const chance = require('../../lib/random/chance');
 const {
   measurementType, unitsOfMeasure, locations, agents, sensors,
-} = require('../../lib/data');
+} = require('../../data');
 const random = require('../../lib/random');
 
 const {
