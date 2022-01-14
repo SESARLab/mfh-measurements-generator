@@ -5,7 +5,7 @@ const split = require('split2');
 const { SingleBar, Presets } = require('cli-progress');
 const { Transform } = require('stream');
 const {
-  NUMBER_OF_ROWS, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE,
+  NUMBER_OF_ROWS, MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE, YEARS,
 } = require('./config');
 const { getMeasurement } = require('./lib/random');
 
@@ -39,7 +39,15 @@ async function writeJSON() {
 
     function run() {
       if (index < NUMBER_OF_ROWS) {
-        const measurement = getMeasurement(MIN_LATITUDE, MAX_LATITUDE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_ALTITUDE, MAX_ALTITUDE);
+        const measurement = getMeasurement(
+          MIN_LATITUDE,
+          MAX_LATITUDE,
+          MIN_LONGITUDE,
+          MAX_LONGITUDE,
+          MIN_ALTITUDE,
+          MAX_ALTITUDE,
+          YEARS,
+        );
 
         write((`${JSON.stringify(measurement)}\n`), run);
         progress.increment();

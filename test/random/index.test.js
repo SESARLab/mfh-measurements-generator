@@ -211,6 +211,27 @@ describe('random', () => {
         insertion_timestamp: insertionTimestamp,
       });
     });
+
+    it('should return a random measurement timestamp in the desired year range, and with a random calculted insertion time', () => {
+      format.mockImplementation((date) => date);
+
+      const pastYear = new Date();
+      addYears.mockReturnValue(pastYear);
+
+      const measurementTimestamp = new Date();
+      chance.date.mockReturnValue(measurementTimestamp);
+
+      const minutes = 30;
+      chance.integer.mockReturnValue(minutes);
+
+      const insertionTimestamp = new Date();
+      addMinutes.mockReturnValue(insertionTimestamp);
+
+      const years = 4;
+      getMeasurementTimestamps('airhumidity', years);
+
+      expect(addYears).toHaveBeenCalledWith(expect.any(Object), -years);
+    });
   });
 
   describe('getLocation', () => {
